@@ -1,0 +1,66 @@
+import socket
+import os
+import json
+
+# Function to get Core Temperature using vcgencmd
+def get_core_temperature():
+    temperature_str = os.popen('vcgencmd measure_temp').readline().strip()
+    return temperature_str
+
+# Function to get Core Voltage using vcgencmd
+def get_core_voltage():
+    voltage_str = os.popen('vcgencmd measure_volts core').readline().strip()
+    return voltage_str
+
+# Function to get GPU Temperature using vcgencmd
+def get_gpu_temperature():
+    gpu_temp_str = os.popen('vcgencmd measure_temp').readline().strip()
+    return gpu_temp_str
+
+# Function to get CPU Temperature using vcgencmd
+def get_cpu_temperature():
+    cpu_temp_str = os.popen('vcgencmd measure_temp').readline().strip()
+    return cpu_temp_str
+
+def main():
+    s = socket.socket()
+    host = '10.102.13.63'  # Localhost
+    port = 5001
+    s.bind((host, port))
+    s.listen(5)
+
+    while True:
+        c, addr = s.accept()
+        print('Got connection from', addr)
+
+        # Collect information using your functions
+        core_temp = get_core_temperature()
+        core_voltage = get_core_voltage()
+        gpu_temp = get_gpu_temperature()
+        cpu_temp = get_cpu_temperature()
+
+        # Print the values obtained
+        print("Core Temperature:", core_temp)
+        print("Core Voltage:", core_voltage)
+        print("GPU Temperature:", gpu_temp)
+        print("CPU Temperature:", cpu_temp)
+
+        # Create a dictionary to store the information
+        data = {
+            "Core Temperature": core_temp,
+            "Core Voltage": core_voltage,
+            "GPU Temperature": gpu_temp,
+            "CPU Temperature": cpu_temp,
+        }
+
+        # Convert data to a JSON object
+        json_data = json.dumps(data)
+
+        # Send JSON data to the client
+        res = bytes(json_data, 'utf-8')
+        c.send(res)
+
+        c.close()
+
+if __name__ == "__main__":
+    main()
